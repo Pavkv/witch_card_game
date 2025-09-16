@@ -1,5 +1,5 @@
 import random
-from game.Classes.Card import Card
+from Card import Card
 
 class Deck:
     def __init__(self):

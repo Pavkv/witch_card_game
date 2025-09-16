@@ -1,7 +1,9 @@
 # coding=utf-8
-from game.Classes.Card import Card
+import random
+from Card import Card
 
-class Player:
+
+class Player(object):
     def __init__(self, name, aces_low=False):
         self.name = name
         self.hand = []
@@ -20,7 +22,8 @@ class Player:
             self.hand.extend(deck.deal_biased(len(self.hand), good_prob))
         else:
             self.hand.extend(deck.deal(len(self.hand)))
-        self.sort_hand(trump_suit)
+        if trump_suit is not None:
+            self.sort_hand(trump_suit)
 
     def sort_hand(self, trump_suit):
         def card_sort_key(card):
@@ -60,6 +63,9 @@ class Player:
 
     def get_ranks(self):
         return [card.rank for card in self.hand]
+
+    def shaffle_hand(self):
+        random.shuffle(self.hand)
 
     def has_only_witch(self):
         """True if player holds exactly one card and it is the Witch."""
@@ -116,7 +122,7 @@ class Player:
 
         return before - len(self.hand)
 
-    def draw_up_to_six_and_cleanup(self, deck, trump_suit=None, good_prob=0.0):
+    def draw_up_to_six_and_cleanup(self, deck, good_prob=0.0):
         """
         For the Witch game turn:
         1) discard pairs (excluding K♠),
@@ -128,11 +134,9 @@ class Player:
         discarded += self.discard_pairs_excluding_witch()
 
         if not deck.is_empty() and len(self.hand) < 6:
-            # Reuse your existing draw logic and sorting
-            self.draw_from_deck(deck, trump_suit, good_prob)
+            self.draw_from_deck(deck, trump_suit=None, good_prob=good_prob)
             discarded += self.discard_pairs_excluding_witch()
 
-        self.sort_hand(trump_suit)
         return discarded
 
     def can_exchange_now(self, deck):

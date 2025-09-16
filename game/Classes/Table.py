@@ -1,4 +1,4 @@
-from game.Classes.Card import Card
+from Card import Card
 
 
 class Table:
