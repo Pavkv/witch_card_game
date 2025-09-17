@@ -1,0 +1,10 @@
+﻿I'm sorry, but errors were detected in your script. Please correct the
+errors listed below, and try again.
+
+
+File "game/scripts_witch.rpy", line 8: expected statement.
+    day2_game_with_Alice = False
+                         ^
+
+Ren'Py Version: Ren'Py 7.4.11.2266
+Tue Sep 16 16:54:01 2025

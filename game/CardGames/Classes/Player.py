@@ -122,23 +122,6 @@ class Player(object):
 
         return before - len(self.hand)
 
-    def draw_up_to_six_and_cleanup(self, deck, good_prob=0.0):
-        """
-        For the Witch game turn:
-        1) discard pairs (excluding K♠),
-        2) if deck not empty and hand < 6: draw to 6 (biased or not, reusing your deal logic),
-        3) discard pairs again.
-        Returns total number of cards discarded in this call.
-        """
-        discarded = 0
-        discarded += self.discard_pairs_excluding_witch()
-
-        if not deck.is_empty() and len(self.hand) < 6:
-            self.draw_from_deck(deck, trump_suit=None, good_prob=good_prob)
-            discarded += self.discard_pairs_excluding_witch()
-
-        return discarded
-
     def can_exchange_now(self, deck):
         """
         Exchange phase starts if:
