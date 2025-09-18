@@ -61,6 +61,8 @@ init:
         "witch": {
             "player_turn": "Ваш ход",
             "opponent_turn": "Ход противника",
+            "wait_choice": "Вытягивание карты",
+            "wait_choice_opponent": "Противник вытягивает карту",
             "round_end": "Игра окончена"
         }
     }

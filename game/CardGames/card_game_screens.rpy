@@ -125,40 +125,16 @@ screen card_game_base_ui():
                         text_size 18
                         action [SetVariable("confirm_attack", True), Function(confirm_selected_attack)]
 
-        elif isinstance(card_game, WitchGame) and card_game.state == "player_turn":
-
-            if len(card_game.player.hand) < 6 and len(card_game.deck.cards) > 0:
+        elif isinstance(card_game, WitchGame) and card_game.state == "wait_choice":
                 frame:
                     xsize 150
                     padding (0, 0)
                     ypos 30
                     has vbox
-                    textbutton "{color=#fff}Взять{/color}":
-                        style "card_game_button"
-                        text_size 25
-                        action Function(card_game.player_turn)
-
-            if card_game.player.count_pairs_excluding_witch() > 0:
-                frame:
-                    xsize 150
-                    padding (0, 0)
-                    ypos 30
-                    has vbox
-                    textbutton "{color=#fff}Скинуть\nпары{/color}":
+                    textbutton "{color=#fff}Подтвердить{/color}":
                         style "card_game_button"
                         text_size 18
-                        action Function(card_game.player.discard_pairs_excluding_witch)
-
-            if card_game.player.can_exchange_now(card_game.deck):
-                frame:
-                    xsize 150
-                    padding (0, 0)
-                    ypos 30
-                    has vbox
-                    textbutton "{color=#fff}Вытянуть\nкарту{/color}":
-                        style "card_game_button"
-                        text_size 18
-                        action Return
+                        action [Function(witch_user_take_from_ai_anim, selected_exchange_card_index), SetVariable("selected_exchange_card_index", -1), SetVariable("hovered_card_index_exchange", -1)]
 
     # Deck and Trump Card
     $ deck_text = str(len(card_game.deck.cards)) if len(card_game.deck.cards) > 0 else card_suits[card_game.deck.trump_suit]
@@ -216,10 +192,30 @@ screen card_game_base_ui():
             $ card_x = opponent_card_layout[i]["x"]
             $ card_y = opponent_card_layout[i]["y"]
 
-            if isinstance(card_game, Game21) and card_game.state == "result" or card_game.result:
+            if isinstance(card_game, Game21) or isinstance(card_game, WitchGame) and card_game.state == "result" or card_game.result:
                 add Transform(get_card_image(card), xysize=(CARD_WIDTH, CARD_HEIGHT)):
                     xpos card_x
                     ypos card_y
+            elif isinstance(card_game, WitchGame) and card_game.state == "wait_choice":
+                $ is_hovered = (i == hovered_card_index_exchange)
+                $ is_adjacent = abs(i - hovered_card_index_exchange) == 1
+                $ is_selected = (i == selected_exchange_card_index)
+
+                $ x_shift = 20 if i == hovered_card_index_exchange + 1 else (-20 if i == hovered_card_index_exchange - 1 else 0)
+                $ y_shift = 80 if is_hovered or is_selected else 0
+                imagebutton:
+                    idle Transform(base_cover_img_src, xysize=(CARD_WIDTH, CARD_HEIGHT))
+                    hover Transform(base_cover_img_src, xysize=(CARD_WIDTH, CARD_HEIGHT))
+                    xpos card_x
+                    ypos card_y
+                    at hover_offset(y=y_shift, x=x_shift)
+                    action If(
+                        isinstance(card_game, WitchGame),
+                        SetVariable("selected_exchange_card_index", i),
+                        Return()
+                    )
+                    hovered If(hovered_card_index_exchange != i, SetVariable("hovered_card_index_exchange", i))
+                    unhovered If(hovered_card_index_exchange == i, SetVariable("hovered_card_index_exchange", -1))
             else:
                 add Transform(base_cover_img_src, xysize=(CARD_WIDTH, CARD_HEIGHT)):
                     xpos card_x

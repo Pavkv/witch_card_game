@@ -39,6 +39,7 @@ label start:
     jump witch_game_loop
 
 label witch_game_loop:
+    $ print(card_game.player.hand)
     if is_dealing:
 #         $ renpy.block_rollback()
         $ is_dealing = False
@@ -72,26 +73,45 @@ label witch_game_loop:
 #         else:
 #             jump card_games
 
-
-    if card_game.result:
+    $ game_over = card_game.game_over()
+    if game_over[0]:
 #         $ renpy.block_rollback()
+        $ card_game.result = game_over[1]
         $ print("Game Over: ", card_game.result)
         $ card_game.state = "results"
 
-#     if card_game.state == "opponent_turn":
-# #         $ renpy.block_rollback()
-#         pause 1.5
-#         python:
-#             opponent_move = card_game.opponent_turn()
-#             if opponent_move == 'h':
-#                 card_game._draw_one(card_game.opponent)
-#                 if card_game.opponent.total21() >= 21:
-#                     card_game.finalize()
-#             elif opponent_move == 'p' and card_game.first_player == card_game.opponent:
-#                 card_game.state = "player_turn"
-#             else:
-#                 card_game.finalize()
-#             compute_hand_layout()
+    if card_game.state == "opponent_turn":
+#         $ renpy.block_rollback()
+        pause 1.5
+        python:
+            if len(card_game.opponent.hand) < 6 and len(card_game.deck.cards) > 0:
+                print("AI draws cards.")
+                witch_ai_draw_to_six_anim()
+                if card_game.opponent.count_pairs_excluding_witch() > 0:
+                    print("AI discards pairs.")
+                    compute_hand_layout()
+                    renpy.pause(1.5)
+                    witch_ai_discard_pairs_anim()
+            elif card_game.opponent.count_pairs_excluding_witch() > 0:
+                print("AI discards pairs.")
+                witch_ai_discard_pairs_anim()
+            elif card_game.opponent.can_exchange_now(card_game.deck):
+                print("AI exchanges a card.")
+                card_game.state = "wait_choice_opponent"
+                donor_idx = card_game._next_player_with_cards(1)
+                donor = card_game.players[donor_idx]
+                ai_idx = (card_game.opponent.choose_exchange_index(donor)
+                      if hasattr(card_game.opponent, "choose_exchange_index")
+                      else renpy.random.randint(0, len(donor.hand)-1))
+                renpy.pause(1.5)
+                witch_ai_take_from_user_anim(ai_idx)
+                if card_game.opponent.count_pairs_excluding_witch() > 0:
+                        print("AI discards pairs.")
+                        compute_hand_layout()
+                        renpy.pause(1.5)
+                        witch_ai_discard_pairs_anim()
+            card_game.state = "player_turn"
+            compute_hand_layout()
 
     call screen witch
     jump witch_game_loop

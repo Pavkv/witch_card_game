@@ -2,9 +2,9 @@
 errors listed below, and try again.
 
 
-File "game/scripts_witch.rpy", line 8: expected statement.
-    day2_game_with_Alice = False
+File "game/CardGames/Witch/scripts_witch.rpy", line 42: expected statement.
+    compute_hand_layout()
                          ^
 
 Ren'Py Version: Ren'Py 7.4.11.2266
-Tue Sep 16 16:54:01 2025
+Wed Sep 17 20:29:26 2025

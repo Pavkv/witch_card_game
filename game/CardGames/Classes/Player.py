@@ -90,7 +90,7 @@ class Player(object):
         buckets, _ = self._pair_buckets_excluding_witch()
         return sum(len(cards) // 2 for cards in buckets.itervalues())
 
-    def discard_pairs_excluding_witch(self):
+    def discard_pairs_excluding_witch(self, deck):
         """
         Discard ALL possible pairs by rank, but NEVER use/discard the Witch (K♠).
         Keeps at most one leftover per rank. Returns number of cards discarded.
@@ -118,6 +118,8 @@ class Player(object):
             if keep_multiset.get(c, 0) > 0:
                 new_hand.append(c)
                 keep_multiset[c] -= 1
+            else:
+                deck.discard.append(c)
         self.hand = new_hand
 
         return before - len(self.hand)

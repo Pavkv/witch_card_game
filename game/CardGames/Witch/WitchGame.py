@@ -82,105 +82,8 @@ class WitchGame:
         self.state = self._resume_state
         self._resume_state = None
 
-    # ---------- user / ai turn flows ----------
-    def player_turn(self):
-        over, loser = self._game_over()
-        if over:
-            self.result = loser.name
-            return
-
-        cur = self.players[0]
-        # draw-to-six WITHOUT cleanup
-        self._draw_up_to_six(idx=0)
-
-        # exchange (human chooses)
-        if cur.can_exchange_now(self.deck):
-            donor_idx = self._next_player_with_cards(0)
-            self.pending_choice = {"type": "exchange", "taker": 0, "donor": donor_idx}
-            self._resume_state = "player_turn"
-            self.state = "wait_choice"
-            return
-
-        # endgame drain loop (no auto-drop after transfers)
-        while True:
-            over, loser = self._game_over()
-            if over:
-                self.result = loser.name
-                return
-
-            taker_idx, donor_idx = self._should_drain()
-            if taker_idx is None:
-                break
-
-            if taker_idx == 0:
-                self.pending_choice = {"type": "drain", "taker": 0, "donor": donor_idx}
-                self._resume_state = "player_turn"
-                self.state = "wait_choice"
-                return
-            else:
-                taker = self.players[1]
-                donor = self.players[0]
-                ai_idx = taker.choose_drain_index(donor) if hasattr(taker, "choose_drain_index") else random.randrange(len(donor.hand))
-                taken = taker.take_card_from(donor, index=ai_idx)
-                if hasattr(taker, 'on_after_take'):
-                    taker.on_after_take(donor, taken)
-                # NO auto-drop/shuffle here
-
-        # switch to AI turn
-        self.current_idx = self._next_player_with_cards(0)
-        self.state = "opponent_turn"
-
-    def opponent_turn(self):
-        over, loser = self._game_over()
-        if over:
-            self.result = loser.name
-            return
-
-        cur = self.players[1]
-        # draw-to-six WITHOUT cleanup
-        self._draw_up_to_six(idx=1)
-
-        # exchange (AI auto)
-        if cur.can_exchange_now(self.deck):
-            donor_idx = self._next_player_with_cards(1)
-            donor = self.players[donor_idx]
-            ai_idx = cur.choose_exchange_index(donor) if hasattr(cur, "choose_exchange_index") else random.randrange(len(donor.hand))
-            taken = cur.take_card_from(donor, index=ai_idx)
-            if hasattr(cur, 'on_after_take'):
-                cur.on_after_take(donor, taken)
-            # NO auto-drop/shuffle here
-
-        # endgame drain loop (no auto-drop after transfers)
-        while True:
-            over, loser = self._game_over()
-            if over:
-                self.result = loser.name
-                return
-
-            taker_idx, donor_idx = self._should_drain()
-            if taker_idx is None:
-                break
-
-            if taker_idx == 0:
-                self.pending_choice = {"type": "drain", "taker": 0, "donor": donor_idx}
-                self._resume_state = "opponent_turn"
-                self.state = "wait_choice"
-                return
-            else:
-                taker = self.players[1]
-                donor = self.players[0]
-                ai_idx = taker.choose_drain_index(donor) if hasattr(taker, "choose_drain_index") else random.randrange(len(donor.hand))
-                taken = taker.take_card_from(donor, index=ai_idx)
-                if hasattr(taker, 'on_after_take'):
-                    taker.on_after_take(donor, taken)
-                # NO auto-drop/shuffle here
-
-        # switch to user turn
-        self.current_idx = self._next_player_with_cards(1)
-        self.state = "player_turn"
-
     # ---------- helpers ----------
-    def _draw_up_to_six(self, idx):
+    def draw_up_to_six(self, idx):
         p = self.players[idx]
         while len(p.hand) < 6 and not self.deck.is_empty():
             p.draw_from_deck(self.deck, trump_suit=None, good_prob=self._bias_idx(idx))
@@ -192,7 +95,7 @@ class WitchGame:
             j = (j + 1) % n
         return j
 
-    def _game_over(self):
+    def game_over(self):
         a, b = self.players
         if len(a.hand) == 1 and len(b.hand) == 1:
             if a.has_only_witch():
